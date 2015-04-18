@@ -1,0 +1,60 @@
+TITLE=Just testing the environment
+ABSTRACT=
+EXPERIMENTER=Divino César
+EXPERIMENTER_EMAIL=divcesar@ic.unicamp.br
+
+INTRODUCTION=intro.tex
+
+NUM_EXPS=2
+
+EXP_NAME=Benchmark A
+HYPOTHESIS=Serial is faster than OMP with just one thread
+SHORT_DESCRIPTION=In this experiment we intend to confirm that OMP with just one thread is slower than serial execution
+EXECUTIONS=5
+PLOT_TYPE=BARS
+PLOT_TITLE=Execution time of OMP vs Serial
+PLOT_XLABEL=Benchmarks
+PLOT_YLABEL=Execution time (s)
+NUM_CMDS=4
+
+IMPL_NAME=OMP
+XLABEL=SleepA
+CMD=sleep 0
+
+IMPL_NAME=OMP
+XLABEL=SleepB
+CMD=sleep 0
+
+IMPL_NAME=SER
+XLABEL=SleepA
+CMD=sleep 0
+
+IMPL_NAME=SER
+XLABEL=SleepB
+CMD=sleep 0
+
+EXP_NAME=Benchmark B
+HYPOTHESIS=OMP is faster than Serial
+SHORT_DESCRIPTION=In this experiment we intend to confirm that Parallel OMP is faster than serial execution
+EXECUTIONS=5
+PLOT_TYPE=LINES
+PLOT_TITLE=Execution time of OMP vs Serial
+PLOT_XLABEL=Benchmarks
+PLOT_YLABEL=Execution time (s)
+NUM_CMDS=4
+
+IMPL_NAME=OMP
+XLABEL=SleepA
+CMD=sleep 0
+
+IMPL_NAME=OMP
+XLABEL=SleepB
+CMD=sleep 0
+
+IMPL_NAME=SER
+XLABEL=SleepA
+CMD=sleep 0
+
+IMPL_NAME=SER
+XLABEL=SleepB
+CMD=sleep 0
