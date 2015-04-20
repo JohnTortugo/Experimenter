@@ -7,6 +7,9 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <sstream>
 using namespace std;
 
 /// Just to shorten things
@@ -172,6 +175,7 @@ private:
 	string plot_title_;
 	string plot_xlabel_;
 	string plot_ylabel_;
+	string plot_caption_;
 
 	ResultTable results_;
 
@@ -221,6 +225,11 @@ public:
 		this->plot_ylabel_ = p.second;
 	}
 
+	void plot_caption(info p) {
+		VALIDATE(p, "PLOT_CAPTION");
+		this->plot_caption_ = p.second;
+	}
+
 	string name() { return this->name_ ; }
 
 	string hypothesis() { return this->hypothesis_ ; }
@@ -236,6 +245,8 @@ public:
 	string plot_xlabel() { return this->plot_xlabel_; }
 
 	string plot_ylabel() { return this->plot_ylabel_; }
+
+	string plot_caption() { return this->plot_caption_; }
 
 	vector<Command>& cmds() { return this->cmds_; }
 
@@ -329,6 +340,16 @@ private:
 
 	vector<Experiment> exps_;
 public:
+	const string TITLE_KEY 				{ "@@@TITLE@@@"};
+	const string ABSTRACT_KEY 			{ "@@@ABSTRACT@@@"};
+	const string EXPERIMENTER_KEY 		{ "@@@EXPERIMENTER@@@"};
+	const string EXPERIMENTER_EMAIL_KEY { "@@@EXPERIMENTER-EMAIL@@@"};
+	const string INTRODUCTION_KEY		{ "@@@INTRODUCTION@@@" };
+	const string ARCH_BRAND_KEY			{ "@@@ARCH-BRAND-NAME@@@" };
+	const string OS_UNAME_KEY			{ "@@@OS-UNAME@@@" };
+
+
+
 	void title(info p) {
 		VALIDATE(p, "TITLE");
 		this->title_ = p.second;
@@ -355,6 +376,8 @@ public:
 	}
 
 	string title() { return this->title_ ; }
+
+	string abstract() { return this->abstract_ ; }
 
 	string experimenter() { return this->experimenter_ ; }
 
@@ -387,6 +410,100 @@ public:
 		for (auto& exp : exps_) {
 			exp.printResultsToStdout();
 		}
+	}
+
+	string readFile(string path) {
+		ifstream inpFile (path);
+		string line;
+		stringstream ss;
+
+		if (inpFile.is_open()) {
+			while ( getline(inpFile, line) )
+				ss << line << "\n";
+
+			inpFile.close();
+
+			return ss.str();
+		}
+		else {
+			fprintf(stderr, "[%s:%d] It was not possible to read the file %s.\n", __FUNCTION__, __LINE__, path.c_str());
+			exit(1);
+		}
+	}
+
+	void writeToFile(string path, string content) {
+		ofstream outFile (path);
+
+		if (outFile.is_open()) {
+			outFile << content << endl;
+			outFile.close();
+		}
+		else {
+			fprintf(stderr, "[%s:%d] It was not possible to read the file %s.\n", __FUNCTION__, __LINE__, path.c_str());
+			exit(1);
+		}
+	}
+
+	void ReplaceAll(std::string& str, const std::string& from, const std::string& to) {
+	    size_t start_pos = 0;
+	    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+	        str.replace(start_pos, from.length(), to);
+	        start_pos += to.length(); // Handles case where ***'to'*** is a substring of 'from'
+	    }
+	}
+
+	string commandOutput(string command) {
+		FILE* fp = popen(command.c_str(), "r");
+		stringstream ss;
+		char buff[4096];
+
+		if (!fp) {
+			fprintf(stderr, "[%s:%d] It was not possible to execute the command or capture its output: %s.\n", __FUNCTION__, __LINE__, command.c_str());
+			exit(1);
+		}
+
+		while(fgets(buff, sizeof(buff), fp)!=NULL)
+			ss << buff;
+
+		pclose(fp);
+
+		string aux = ss.str();
+
+		/// Escape for latex special characters
+		ReplaceAll(aux, string("_"), string("\\_"));
+		ReplaceAll(aux, string("#"), string("\\#"));
+
+		return aux;
+	}
+
+	void printToLatex() {
+		/// Read templates
+		string mainFile_TemplateText 		= readFile("templates/template1/template.tex");
+		string resultSection_TemplateText 	= readFile("templates/template1/ressec_template.tex");
+		string linePlot_TemplateTex 		= readFile("templates/template1/lineplot_template.tex");
+		string barPlot_TemplateTex 			= readFile("templates/template1/barplot_template.tex");
+		string reportText					= mainFile_TemplateText;
+
+		/// Produce the architecture representation image
+		int rsys = system("lstopo architecture.pdf");
+
+		/// Update information in the main template
+		ReplaceAll(reportText, TITLE_KEY, this->title());
+		ReplaceAll(reportText, ABSTRACT_KEY, this->abstract());
+		ReplaceAll(reportText, EXPERIMENTER_KEY, this->experimenter());
+		ReplaceAll(reportText, EXPERIMENTER_EMAIL_KEY, this->experimenter_email());
+
+		/// If the user specified an "intro.tex" file then it is included
+		if (this->intro_tex_path() != "") {
+			string introText = readFile(this->intro_tex_path());
+			ReplaceAll(reportText, INTRODUCTION_KEY, introText);
+		}
+
+		/// Append architecture name, frequency, code; append kernel version, machine name, etc.
+		ReplaceAll(reportText, OS_UNAME_KEY, commandOutput("uname -a"));
+		ReplaceAll(reportText, ARCH_BRAND_KEY, commandOutput("cat /proc/cpuinfo | grep \"model name\" | cut -d':' -f 2 | head -n 1"));
+
+		writeToFile("report.tex", reportText);
 	}
 };
 
@@ -437,6 +554,7 @@ bool parseInput(Project& proj) {
 		exp.plot_title(nextInputPair());
 		exp.plot_xlabel(nextInputPair());
 		exp.plot_ylabel(nextInputPair());
+		exp.plot_caption(nextInputPair());
 
 		/// Lets start parsing the commands
 		info numCmdsInfo = nextInputPair();
@@ -488,7 +606,7 @@ int main(int argc, char* argv[]) {
 	proj.printToLatex();
 
 	/// compile latex to pdf
-	proj.latexToPdf();
+	//proj.latexToPdf();
 
 	return 0;
 }

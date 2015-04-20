@@ -1,0 +1,40 @@
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PGF_PLOT RESULTS_TABLE
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{filecontents}{exp@@@EXP-ID@@@.csv}
+@@@EXP-RES-TABLE@@@
+\end{filecontents}
+
+\begin{figure}[!h]
+	\begin{tikzpicture}
+		\begin{axis}[
+			ybar,
+			ymajorgrids				= true,
+			width  					= \textwidth,
+			ylabel					= {@@@PLOT-YLABEL@@@},
+			major x tick style 	 	= transparent,
+			xtick					= data,
+			bar width				= 8pt,
+			enlarge x limits		= 0.08,
+			x tick label style		= {
+				rotate	= 90,
+				anchor	= east,
+			},
+			symbolic x coords 		= {
+				@@@X-LABELS-LIST@@@
+			},
+			legend cell align 	 	= left,
+			legend image code/.code	= {%
+				\draw[#1] (-0.1cm,-0.1cm) rectangle (0.10cm,0.2cm);
+			}
+		]
+
+		%@@@PLOT_LINE@@@
+		\addplot [style={corLine@@@COUNTER@@@,fill=corFill@COUNTER@@@,mark=none}, error bars/.cd, y dir=both, y explicit]	table [x=benchmark, y=c@@@COUNTER@@@, y error=c@COUNTER@@@_err] {exp@@@EXP-ID@@@.csv};
+
+		\legend{@@@IMPLS-LIST@@@}
+		\end{axis}
+	\end{tikzpicture}
+
+	\caption{@@@PLOT-CAPTION@@@}
+\end{figure}

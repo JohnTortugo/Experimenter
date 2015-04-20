@@ -1,0 +1,138 @@
+% Original author of the front page: Jonathan Ward
+\documentclass[11pt]{article} 
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath} 		% AMS Math Package
+\usepackage{amsthm} 		% Theorem Formatting
+\usepackage{amssymb} 		% Math symbols such as \mathbb
+\usepackage{graphicx} 		% Allows for eps images
+\usepackage{multicol} 		% Allows for multiple columns
+\usepackage[dvips,letterpaper,margin=1in,bottom=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{mathrsfs}
+\usepackage{amsmath,amscd}
+\usepackage[all,cmtip]{xy}
+\usepackage{bbm}
+\usepackage{fancyhdr}
+\usepackage{parskip}
+\usepackage{datetime}
+\usepackage{tikz,pgfplots}
+\usepackage{filecontents}
+    \usepgfplotslibrary{groupplots}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{patterns}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Define bar chart colors
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\definecolor{corLine1}{HTML}{8258FA}
+\definecolor{corFill1}{HTML}{BCA9F5}
+
+\definecolor{corLine2}{HTML}{FE2E2E}
+\definecolor{corFill2}{HTML}{F78181}
+
+\definecolor{corLine3}{HTML}{04B45F}
+\definecolor{corFill3}{HTML}{00FF80}
+
+\definecolor{corLine4}{HTML}{545454}
+\definecolor{corFill4}{HTML}{9D9D9D}
+
+
+\pgfplotsset{
+	compat=newest,
+    discard if/.style 2 args={
+        x filter/.code={
+            \edef\tempa{\thisrow{#1}}
+            \edef\tempb{#2}
+            \ifx\tempa\tempb
+                \def\pgfmathresult{inf}
+            \fi
+        }
+    },
+    discard if not/.style 2 args={
+        x filter/.code={
+            \edef\tempa{\thisrow{#1}}
+            \edef\tempb{#2}
+            \ifx\tempa\tempb
+            \else
+                \def\pgfmathresult{inf}
+            \fi
+        }
+    }
+}
+
+
+
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Create title page
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\titleGM}{\begingroup 								% Create the command for including the title page in the document
+\hbox{ 															% Horizontal box
+	\hspace*{0.1\textwidth} 									% Whitespace to the left of the title page
+	\rule{1pt}{\textheight} 									% Vertical line
+	\hspace*{0.05\textwidth} 									% Whitespace between the vertical line and title page text
+	\parbox[b]{0.75\textwidth}{ 								% Paragraph box which restricts text to less than the width of the page
+		{\noindent\Huge\bfseries @@@TITLE@@@ \\}\\[2\baselineskip] 			% Title
+		{\large \textit{@@@ABSTRACT@@@}}\\[4\baselineskip] 					% Tagline or further description
+		{\large \textsc{@@@EXPERIMENTER@@@}}\\[0.5\baselineskip] 			% Author name
+		{\large \textbf{@@@EXPERIMENTER-EMAIL@@@}}				 			% Author email address
+
+		\vspace{0.5\textheight} 													% Whitespace between the title block and the publisher
+		{\noindent Computer Systems Lab}\\[\baselineskip] 							% Publisher and logo
+		{\noindent University of Campinas, Sao Paulo, \today.}\\[\baselineskip] 	% Publisher and logo
+	}
+}
+\endgroup}
+
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Fancy header/footers
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\pagestyle{fancy}
+\lhead{ @@@TITLE@@@ }
+\rhead{\thepage}
+\lfoot{}
+\rfoot{}
+\cfoot{}
+ 
+\renewcommand{\headrulewidth}{2pt}
+\renewcommand{\footrulewidth}{1pt}
+
+
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Here begins the text
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\thispagestyle{empty}
+\titleGM
+
+\newpage
+\section{Introduction}
+
+	@@@INTRODUCTION@@@
+
+\newpage
+\section{Environment}
+
+	\textit{\textbf{Operating System:} @@@OS-UNAME@@@}
+
+	\vspace{0.2cm}
+	\textit{\textbf{Architecture:} @@@ARCH-BRAND-NAME@@@}
+	\begin{figure}[!h]
+		\includegraphics[width=\textwidth]{architecture}
+		\caption{Diagram of the architecture were the experiments were run.}
+	\end{figure}
+
+\newpage
+\section{Results}
+
+	@@@RES-SUBSECS@@@
+
+\end{document}

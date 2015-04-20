@@ -1,0 +1,31 @@
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PGF_PLOT RESULTS_TABLE_1
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{filecontents}{@@@EXP-ID@@@.csv}
+@@@EXP-RES-TABLE@@@
+\end{filecontents}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Figure ...
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}[!h]
+	\begin{tikzpicture}
+		\begin{axis}[
+			title		= {@@@PLOT-TITLE@@@},
+			ylabel		= {@@@PLOT-YLABEL@@@},
+			xlabel		= {@@@PLOT-XLABEL@@@},
+			width 		= \textwidth,
+			ymajorgrids	= true,
+			grid style	= dashed,
+		]
+				 
+			%@@@PLOT_LINE@@@
+			\addplot[color=corLine@@@COUNTER@@@, mark=@@@MARKER@@@] plot [error bars/.cd, y dir = both, y explicit] table[row sep=crcr, x=x, y=c@@@COUNTER@@@, y error=c@@@COUNTER@@@_err] {exp@@@EXP-ID@@@.csv};
+
+			\legend{@@@IMPLS-LIST@@@}
+		\end{axis}
+	\end{tikzpicture}
+
+	\caption{@@@PLOT-CAPTION@@@}
+\end{figure}
