@@ -1,2 +1,5 @@
-experimenter: experimenter.cpp
-	g++ -std=c++11 -O3 experimenter.cpp -o experimenter
+all: experimenter.cpp
+	g++ -g -std=c++11 -O0 experimenter.cpp -o experimenter
+
+clean:
+	rm -rf *.o *.aux *.log *.out experimenter

@@ -1,7 +1,7 @@
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PGF_PLOT RESULTS_TABLE_1
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{filecontents}{@@@EXP-ID@@@.csv}
+\begin{filecontents}{exp@@@EXP-ID@@@.csv}
 @@@EXP-RES-TABLE@@@
 \end{filecontents}
 
@@ -18,14 +18,19 @@
 			width 		= \textwidth,
 			ymajorgrids	= true,
 			grid style	= dashed,
+			xtick		= data,
+			symbolic x coords 		= {
+				@@@PLOT-X-LABELS-LIST@@@
+			},
 		]
 				 
-			%@@@PLOT_LINE@@@
-			\addplot[color=corLine@@@COUNTER@@@, mark=@@@MARKER@@@] plot [error bars/.cd, y dir = both, y explicit] table[row sep=crcr, x=x, y=c@@@COUNTER@@@, y error=c@@@COUNTER@@@_err] {exp@@@EXP-ID@@@.csv};
+			%@@@BEG-PLOT-LINE@@@
+			\addplot[color=@@@LINE-COLOR@@@, mark=@@@MARKER@@@] plot [error bars/.cd, y dir = both, y explicit] table[row sep=crcr, x=x, y=c@@@COUNTER@@@, y error=c@@@COUNTER@@@_err] {exp@@@EXP-ID@@@.csv};
+			%@@@END-PLOT-LINE@@@
 
-			\legend{@@@IMPLS-LIST@@@}
+			\legend{@@@PLOT-IMPLS-LIST@@@}
 		\end{axis}
 	\end{tikzpicture}
 
-	\caption{@@@PLOT-CAPTION@@@}
+	\caption{@@@PLOT-CAPTION@@@ Results are average of @@@NUM-SAMPLES@@@ executions.}
 \end{figure}

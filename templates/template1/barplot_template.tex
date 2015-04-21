@@ -10,6 +10,7 @@
 		\begin{axis}[
 			ybar,
 			ymajorgrids				= true,
+			title					= {@@@PLOT-TITLE@@@},
 			width  					= \textwidth,
 			ylabel					= {@@@PLOT-YLABEL@@@},
 			major x tick style 	 	= transparent,
@@ -21,7 +22,7 @@
 				anchor	= east,
 			},
 			symbolic x coords 		= {
-				@@@X-LABELS-LIST@@@
+				@@@PLOT-X-LABELS-LIST@@@
 			},
 			legend cell align 	 	= left,
 			legend image code/.code	= {%
@@ -29,12 +30,13 @@
 			}
 		]
 
-		%@@@PLOT_LINE@@@
-		\addplot [style={corLine@@@COUNTER@@@,fill=corFill@COUNTER@@@,mark=none}, error bars/.cd, y dir=both, y explicit]	table [x=benchmark, y=c@@@COUNTER@@@, y error=c@COUNTER@@@_err] {exp@@@EXP-ID@@@.csv};
+		%@@@BEG-PLOT-LINE@@@
+		\addplot [style={@@@LINE-COLOR@@@,fill=@@@FILL-COLOR@@@}, error bars/.cd, y dir=both, y explicit]	table [x=x, y=c@@@COUNTER@@@, y error=c@@@COUNTER@@@_err] {exp@@@EXP-ID@@@.csv};
+		%@@@END-PLOT-LINE@@@
 
-		\legend{@@@IMPLS-LIST@@@}
+		\legend{@@@PLOT-IMPLS-LIST@@@}
 		\end{axis}
 	\end{tikzpicture}
 
-	\caption{@@@PLOT-CAPTION@@@}
+	\caption{@@@PLOT-CAPTION@@@ Results are average of @@@NUM-SAMPLES@@@ executions.}
 \end{figure}

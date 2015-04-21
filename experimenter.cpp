@@ -5,11 +5,14 @@
 #include <map>
 #include <cstdlib>
 #include <cstdio>
+#include <cmath>
 #include <cstring>
 #include <iostream>
 #include <fstream>
 #include <algorithm>
 #include <sstream>
+#include <ctime>
+#include <locale>
 using namespace std;
 
 /// Just to shorten things
@@ -17,7 +20,7 @@ typedef pair<string, string> info;
 
 /// Just to shorten things again
 #define VALIDATE(_param_, key)	if (_param_.first != key) { \
-									fprintf(stderr, "[%s:%d] It was not possible to parse the configuration file.\n", __FUNCTION__, __LINE__); \
+									fprintf(stderr, "[%s:%d] It was impossible to parse the configuration file.\n", __FUNCTION__, __LINE__); \
 									exit(1); \
 								}
 
@@ -29,6 +32,42 @@ double get_wall_time(){
     if (gettimeofday(&time,NULL)) return 0;
 
 	return (double)time.tv_sec + (double)time.tv_usec * .000001;
+}
+
+void ReplaceAll(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = 0;
+    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length(); // Handles case where ***'to'*** is a substring of 'from'
+    }
+}
+
+/// yeah, might be inefficient buttt... itemsToSort is a very small "list"
+string getOrderedByValueStr(map<string, int> itemsToSort) {
+	vector<string> sortedItems(itemsToSort.size());
+	string result;
+
+	for (auto& item : itemsToSort)
+		sortedItems[item.second] = item.first;
+
+	for (auto& item : sortedItems)
+		result += item + ",";
+
+	return result;
+}
+
+string todayDate() {
+	std::locale::global(std::locale("pt_BR.utf8"));
+	std::time_t t = std::time(NULL);
+	char mbstr[100];
+
+	if (std::strftime(mbstr, sizeof(mbstr), "%Y_%m_%d_%H_%M_%S", std::localtime(&t))) {
+		return string(mbstr);
+	}
+	else {
+		fprintf(stderr, "[%s:%d] It was impossible to obtain the current date.\n", __FUNCTION__, __LINE__);
+		exit(1);
+	}
 }
 
 class ResultTable {
@@ -131,6 +170,22 @@ public:
 		return sum / l;
 	}
 
+	double getSampleStandardDeviation(string row, string col) {
+		double average = getAverage(row, col);
+		int i = (*rowNames_)[row];
+		int j = (*colNames_)[col];
+		int l = num_values_[i*numCols_ + j];
+
+		double sum = 0;
+		for (int ind=0; ind<l; ind++) {
+			double item = getMeasure(i, j, ind);
+			double diff = item - average;
+			sum += (diff * diff);
+		}
+
+		return sqrt( sum / (l-1) );
+	}
+
 };
 
 /// Represent one command to be executed
@@ -166,6 +221,7 @@ public:
 /// Represent each of the experiments to be executed in the project
 class Experiment {
 private:
+	int id_;
 	string name_;
 	string hypothesis_;
 	string description_;
@@ -184,7 +240,29 @@ private:
 	map<string, int> implementations;
 	map<string, int> xlabels;
 
+	const string EXP_ID_KEY				{ "@@@EXP-ID@@@" };
+	const string PLOT_TITLE_KEY			{ "@@@PLOT-TITLE@@@" };
+	const string PLOT_XLABEL_KEY		{ "@@@PLOT-XLABEL@@@" };
+	const string PLOT_YLABEL_KEY		{ "@@@PLOT-YLABEL@@@" };
+	const string PLOT_CAPTION_KEY		{ "@@@PLOT-CAPTION@@@" };
+	const string PLOT_NUM_SAMPLES_KEY	{ "@@@NUM-SAMPLES@@@" };
+	const string PLOT_XLABELS_LIST_KEY	{ "@@@PLOT-X-LABELS-LIST@@@" };
+	const string PLOT_IMPLS_LIST_KEY	{ "@@@PLOT-IMPLS-LIST@@@" };
+	const string PLOT_EXP_RES_TABLE_KEY	{ "@@@EXP-RES-TABLE@@@" };
+	const string BEG_PLOT_LINE_KEY		{ "@@@BEG-PLOT-LINE@@@" };
+	const string END_PLOT_LINE_KEY		{ "@@@END-PLOT-LINE@@@" };
+	const string PLOT_LINES_KEY			{ "@@@PLOT-LINES@@@" };
+	const string PLOT_ADD_PLOT_LINE_KEY	{ "@@@LINE-COLOR@@@" };
+	const string PLOT_ADD_PLOT_FILL_KEY	{ "@@@FILL-COLOR@@@" };
+	const string PLOT_ADD_PLOT_COUNTER_KEY	{ "@@@COUNTER@@@" };
+	const string PLOT_ADD_PLOT_MARKER_KEY	{ "@@@MARKER@@@" };
+
+
 public:
+	void id(int pid) {
+		this->id_ = pid;
+	}
+
 	void name(info p) {
 		VALIDATE(p, "EXP_NAME");
 		this->name_ = p.second;
@@ -229,6 +307,8 @@ public:
 		VALIDATE(p, "PLOT_CAPTION");
 		this->plot_caption_ = p.second;
 	}
+
+	int id() { return this->id_; }
 
 	string name() { return this->name_ ; }
 
@@ -281,7 +361,7 @@ public:
 			cout << "\t\t\tExecuting command: " << cmd.cmd() << endl;
 
 			for (int sampleNum=0; sampleNum<num_samples_; sampleNum++) {
-				cout << "\t\t\t\tExecuting sample " << sampleNum << endl;
+				cout << "\t\t\t\tExecuting sample " << sampleNum << ": ";
 				double startTime 	= get_wall_time();
 
 				int retCode 		= system( cmd.cmd().c_str() );
@@ -298,6 +378,8 @@ public:
 					fprintf(stderr, "[%s:%d] Signal for stopping captured. Aborting!\n", __FUNCTION__, __LINE__); \
 					exit(1);
 				}
+
+				cout << " took " << wallTime << " seconds. " << endl;
 
 				addResult(cmd.impl(), cmd.xlabel(), wallTime);
 			}
@@ -326,6 +408,97 @@ public:
 		}
 
 	}
+
+	string getTexResultTable() {
+		stringstream results;
+
+		results << "x \t";
+
+		for (int i=0; i<implementations.size(); i++)
+			results << "c" << i << " \t c" << i << "_err \t";
+		results << endl;
+
+		for (auto& lbl : xlabels) {
+			results << lbl.first << " \t";
+
+			for (auto& impl : implementations)
+				results << this->results_.getAverage(impl.first, lbl.first) << " \t " <<
+						   this->results_.getSampleStandardDeviation(impl.first, lbl.first) << " \t";
+
+			results << endl;
+		}
+
+		return results.str();
+	}
+
+	/// These "+1"/"-1" all around are for taking care of the "%" latex comment character
+	string findAndPathAddPlotLine(string& plotText) {
+		auto secBegin 		= plotText.find(BEG_PLOT_LINE_KEY);
+		auto secEnd 		= plotText.find(END_PLOT_LINE_KEY);
+
+		string plotLineTmpl = plotText.substr(secBegin+BEG_PLOT_LINE_KEY.size(), secEnd - secBegin-BEG_PLOT_LINE_KEY.size() - 1);
+
+		plotText.replace(secBegin - 1, secEnd + END_PLOT_LINE_KEY.size() + 1 - secBegin, PLOT_LINES_KEY);
+
+		return plotLineTmpl;
+	}
+
+	string genPlotTex(string texTemplate) {
+		const int NUM_DESIGNS = 18;
+
+		string markers[NUM_DESIGNS] = {	"o", "star", "oplus", "otimes", "square", "triangle", "diamond", "halfdiamond", "halfcircle", "pentagon",
+										"*", "star*", "oplus*", "otimes*", "square*", "triangle*", "diamond*", "pentagon*"};
+
+		string colors[NUM_DESIGNS] = {	"red", "blue", "yellow", "green", "violet", "orange", "pink", "cyan", "olive", "magenta",
+										"gray", "brown", "purple", "lightgray", "teal", "lime", "black", "darkgray"};
+
+		string plotText = texTemplate;
+
+		ReplaceAll(plotText, EXP_ID_KEY, std::to_string(this->id()));
+		ReplaceAll(plotText, PLOT_TITLE_KEY, this->plot_title());
+		ReplaceAll(plotText, PLOT_YLABEL_KEY, this->plot_ylabel());
+		ReplaceAll(plotText, PLOT_XLABEL_KEY, this->plot_xlabel());
+		ReplaceAll(plotText, PLOT_CAPTION_KEY, this->plot_caption());
+		ReplaceAll(plotText, PLOT_NUM_SAMPLES_KEY, std::to_string(this->num_samples()));
+
+		string implList 	= getOrderedByValueStr( this->implementations );
+		string xlabelsList 	= getOrderedByValueStr( this->xlabels );
+
+		ReplaceAll(plotText, PLOT_XLABELS_LIST_KEY, xlabelsList);
+		ReplaceAll(plotText, PLOT_IMPLS_LIST_KEY, implList);
+
+		/// Adds the result table to the .tex
+		string texResTable	= getTexResultTable();
+
+		ReplaceAll(plotText, PLOT_EXP_RES_TABLE_KEY, texResTable);
+
+		/// Now we are going to add the "\addplot" lines. First we identify
+		/// the position and later we add them.
+		/// The function below will find the BEG/END of a line plot. Extract
+		/// the addplot template and return it and, replace the beg\end region
+		/// with a new marker @@@PLOT_LINES@@@
+		string addPlotTemplate = findAndPathAddPlotLine(plotText);
+		string plotLines;
+
+		for (int i=0, disId=0; i<implementations.size(); i++, disId++) {
+			string newLine = addPlotTemplate;
+			disId = disId % NUM_DESIGNS;
+
+			ReplaceAll(newLine, PLOT_ADD_PLOT_LINE_KEY, colors[disId]);
+			ReplaceAll(newLine, PLOT_ADD_PLOT_FILL_KEY, colors[disId] + "!60");
+			ReplaceAll(newLine, PLOT_ADD_PLOT_COUNTER_KEY, std::to_string(i));
+			ReplaceAll(newLine, PLOT_ADD_PLOT_MARKER_KEY, markers[disId]);
+
+			plotLines += newLine;
+		}
+
+		/// Add all plot lines at once in the plot.
+		ReplaceAll(plotText, PLOT_LINES_KEY, plotLines);
+
+		/// returns the text of the new plot
+		return plotText;
+	}
+
 };
 
 /// Represent the whole project
@@ -347,7 +520,12 @@ public:
 	const string INTRODUCTION_KEY		{ "@@@INTRODUCTION@@@" };
 	const string ARCH_BRAND_KEY			{ "@@@ARCH-BRAND-NAME@@@" };
 	const string OS_UNAME_KEY			{ "@@@OS-UNAME@@@" };
+	const string RES_SUBSECS_KEY		{ "@@@RES-SUBSECS@@@" };
 
+	const string EXP_NAME_KEY			{ "@@@EXP-NAME@@@" };
+	const string EXP_HYPOTHESIS_KEY		{ "@@@EXP-HYPOTHESIS@@@" };
+	const string EXP_SHORT_DESCRIPTION_KEY	{ "@@@EXP-SHORT-DESCRIPTION@@@" };
+	const string EXP_PLOT_CODE_KEY		{ "@@@EXP-PLOT-CODE@@@" };
 
 
 	void title(info p) {
@@ -426,7 +604,7 @@ public:
 			return ss.str();
 		}
 		else {
-			fprintf(stderr, "[%s:%d] It was not possible to read the file %s.\n", __FUNCTION__, __LINE__, path.c_str());
+			fprintf(stderr, "[%s:%d] It was impossible to read the file %s.\n", __FUNCTION__, __LINE__, path.c_str());
 			exit(1);
 		}
 	}
@@ -439,17 +617,9 @@ public:
 			outFile.close();
 		}
 		else {
-			fprintf(stderr, "[%s:%d] It was not possible to read the file %s.\n", __FUNCTION__, __LINE__, path.c_str());
+			fprintf(stderr, "[%s:%d] It was impossible to read the file %s.\n", __FUNCTION__, __LINE__, path.c_str());
 			exit(1);
 		}
-	}
-
-	void ReplaceAll(std::string& str, const std::string& from, const std::string& to) {
-	    size_t start_pos = 0;
-	    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
-	        str.replace(start_pos, from.length(), to);
-	        start_pos += to.length(); // Handles case where ***'to'*** is a substring of 'from'
-	    }
 	}
 
 	string commandOutput(string command) {
@@ -458,7 +628,7 @@ public:
 		char buff[4096];
 
 		if (!fp) {
-			fprintf(stderr, "[%s:%d] It was not possible to execute the command or capture its output: %s.\n", __FUNCTION__, __LINE__, command.c_str());
+			fprintf(stderr, "[%s:%d] It was impossible to execute the command or capture its output: %s.\n", __FUNCTION__, __LINE__, command.c_str());
 			exit(1);
 		}
 
@@ -485,7 +655,7 @@ public:
 		string reportText					= mainFile_TemplateText;
 
 		/// Produce the architecture representation image
-		int rsys = system("lstopo architecture.pdf");
+		int rsys = system("lstopo reports/architecture.pdf");
 
 		/// Update information in the main template
 		ReplaceAll(reportText, TITLE_KEY, this->title());
@@ -503,7 +673,33 @@ public:
 		ReplaceAll(reportText, OS_UNAME_KEY, commandOutput("uname -a"));
 		ReplaceAll(reportText, ARCH_BRAND_KEY, commandOutput("cat /proc/cpuinfo | grep \"model name\" | cut -d':' -f 2 | head -n 1"));
 
-		writeToFile("report.tex", reportText);
+		/// Output a results subsection for each experiment
+		string subSecsText;
+		for (auto& exp : experiments()) {
+			/// fresh new template for the subsection
+			string section 		= resultSection_TemplateText;
+			string plotTemplate = (exp.plot_type() == "BARS" ? barPlot_TemplateTex : linePlot_TemplateTex);
+			string plotText 	= exp.genPlotTex(plotTemplate);
+
+			ReplaceAll(section, EXP_NAME_KEY, 				exp.name());
+			ReplaceAll(section, EXP_HYPOTHESIS_KEY, 		exp.hypothesis());
+			ReplaceAll(section, EXP_SHORT_DESCRIPTION_KEY, 	exp.description());
+			ReplaceAll(section, EXP_PLOT_CODE_KEY, 			plotText);
+
+			/// concatenate the subsection result template filled
+			subSecsText += section;
+		}
+
+		/// Write all the .tex for the results section in report.tex
+		ReplaceAll(reportText, RES_SUBSECS_KEY, subSecsText);
+
+		/// Write the .tex and compile the project
+		string today = todayDate();
+		writeToFile("reports/report_" + today + ".tex", reportText);
+
+		/// Produce the ".pdf" report and remove temporary files.
+		commandOutput("cd reports && pdflatex report_" + today + ".tex");
+		commandOutput("cd reports && rm -rf *.aux *.log *.out *.csv");
 	}
 };
 
@@ -523,7 +719,7 @@ info nextInputPair() {
 		return make_pair(string(key), string(value));
 	}
 
-	fprintf(stderr, "It was not possible to parse the configuration file.");
+	fprintf(stderr, "It was impossible to parse the configuration file.");
 	exit(1);
 }
 
@@ -544,6 +740,7 @@ bool parseInput(Project& proj) {
 		Experiment exp;
 
 		/// Experiments metadata
+		exp.id(i);
 		exp.name(nextInputPair());
 		exp.hypothesis(nextInputPair());
 		exp.description(nextInputPair());
@@ -590,7 +787,7 @@ int main(int argc, char* argv[]) {
 	/// Open and parse the configuration file.
 	/// Informations are stored in the "proj" variable.
 	if (!freopen(argv[1], "r", stdin) || !parseInput(proj)) {
-		fprintf(stderr, "It was not possible to parse the configuration file.\n");
+		fprintf(stderr, "It was impossible to parse the configuration file.\n");
 		exit(1);
 	}
 	fclose(stdin);
@@ -604,9 +801,6 @@ int main(int argc, char* argv[]) {
 
 	/// Emit latex source code
 	proj.printToLatex();
-
-	/// compile latex to pdf
-	//proj.latexToPdf();
 
 	return 0;
 }
