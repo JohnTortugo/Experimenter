@@ -27,11 +27,21 @@ typedef pair<string, string> info;
 
 /// Return the current time in "seconds.microseconds";
 double get_wall_time(){
+/// Option 1
     struct timeval time;
 
     if (gettimeofday(&time,NULL)) return 0;
 
 	return (double)time.tv_sec + (double)time.tv_usec * .000001;
+
+/// Option 2
+//    struct timespec rse;
+//
+//    clock_gettime(CLOCK_MONOTONIC, &rse);
+//
+//    double wtime = rse.tv_sec + (double)rse.tv_nsec * 0.000000001;
+//
+//    return wtime;
 }
 
 void ReplaceAll(std::string& str, const std::string& from, const std::string& to) {
@@ -96,16 +106,16 @@ private:
 	}
 
 	void setMeasure(int i, int j, int k, double val) {
-		this->measurements_[i*numRows_*depth_ + j*depth_ + k] = val;
+		this->measurements_[i*numCols_*depth_ + j*depth_ + k] = val;
 	}
 
 	double getMeasure(int i, int j, int k) {
-		return this->measurements_[i*numRows_*depth_ + j*depth_ + k];
+		return this->measurements_[i*numCols_*depth_ + j*depth_ + k];
 	}
 
 	void addMeasure(int i, int j, double val) {
 		int k = this->num_values_[i*numCols_ + j];
-		this->measurements_[i*numRows_*depth_ + j*depth_ + k] = val;
+		this->measurements_[i*numCols_*depth_ + j*depth_ + k] = val;
 		this->num_values_[i*numCols_ + j]++;
 	}
 
