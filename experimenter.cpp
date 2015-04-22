@@ -424,8 +424,8 @@ public:
 
 		results << "x \t";
 
-		for (int i=0; i<implementations.size(); i++)
-			results << "c" << i << " \t c" << i << "_err \t";
+		for (auto& impl : implementations)
+			results << "c" << std::to_string(impl.second) << " \t c" << std::to_string(impl.second) << "_err \t";
 		results << endl;
 
 		for (auto& lbl : xlabels) {
@@ -442,7 +442,7 @@ public:
 	}
 
 	/// These "+1"/"-1" all around are for taking care of the "%" latex comment character
-	string findAndPathAddPlotLine(string& plotText) {
+	string findAndPatchAddPlotLine(string& plotText) {
 		auto secBegin 		= plotText.find(BEG_PLOT_LINE_KEY);
 		auto secEnd 		= plotText.find(END_PLOT_LINE_KEY);
 
@@ -487,7 +487,7 @@ public:
 		/// The function below will find the BEG/END of a line plot. Extract
 		/// the addplot template and return it and, replace the beg\end region
 		/// with a new marker @@@PLOT_LINES@@@
-		string addPlotTemplate = findAndPathAddPlotLine(plotText);
+		string addPlotTemplate = findAndPatchAddPlotLine(plotText);
 		string plotLines;
 
 		for (int i=0, disId=0; i<implementations.size(); i++, disId++) {

@@ -1,62 +1,67 @@
-TITLE=Just testing the environment
+TITLE=The Overhead of Wrapper Functions in The Intel OMP Runtime Library
 ABSTRACT=
 EXPERIMENTER=Divino César
 EXPERIMENTER_EMAIL=divcesar@ic.unicamp.br
 
-INTRODUCTION=intro.tex
+INTRODUCTION=/home/divcesar/Dropbox/MTSP/exps/intro.tex
 
-NUM_EXPS=2
+NUM_EXPS=1
 
-EXP_NAME=Benchmark A
-HYPOTHESIS=Serial is faster than OMP with just one thread
-SHORT_DESCRIPTION=In this experiment we intend to confirm that OMP with just one thread is slower than serial execution
-EXECUTIONS=2
+EXP_NAME=Wrapper Functions Overhead
+HYPOTHESIS=The overhead of wrapper functions is negligible. 
+SHORT_DESCRIPTION=In this experiment we are going to check whether the default block granularity of these benchmarks expose sufficient work to amortize the overhead of wrapper functions execution. 
+EXECUTIONS=1
 PLOT_TYPE=BARS
-PLOT_TITLE=Execution time of OMP vs Serial
+PLOT_TITLE=Execution time of Serial vs MTSP Serial
 PLOT_XLABEL=Benchmarks
-PLOT_YLABEL=
-PLOT_CAPTION=First graph of the report
-NUM_CMDS=4
+PLOT_YLABEL=Execution Time (s)
+PLOT_CAPTION=Execution time of MTSP Serial and the original serial implementation of KaSTORS benchmarks.
+NUM_CMDS=12
 
-IMPL_NAME=OMP
-XLABEL=SleepA
-CMD=ls /tmp/
+IMPL_NAME=Serial
+XLABEL=Strassen
+CMD=sleep 0.10 
 
-IMPL_NAME=OMP
-XLABEL=SleepB
-CMD=ls /lib/
+IMPL_NAME=Serial
+XLABEL=Jacobi
+CMD=sleep 0.20
 
-IMPL_NAME=SER
-XLABEL=SleepA
-CMD=ls /tmp/
+IMPL_NAME=Serial
+XLABEL=SparseLU
+CMD=sleep 0.30
 
-IMPL_NAME=SER
-XLABEL=SleepB
-CMD=ls /lib/
+IMPL_NAME=Serial
+XLABEL=Dpotrf
+CMD=sleep 0.40
 
-EXP_NAME=Benchmark B
-HYPOTHESIS=OMP is faster than Serial
-SHORT_DESCRIPTION=In this experiment we intend to confirm that Parallel OMP is faster than serial execution
-EXECUTIONS=2
-PLOT_TYPE=LINES
-PLOT_TITLE=Execution time of OMP vs Serial
-PLOT_XLABEL=Benchmarks
-PLOT_YLABEL=Execution time (s)
-PLOT_CAPTION=Second graph of the report
-NUM_CMDS=4
+IMPL_NAME=Serial
+XLABEL=Dgetrf
+CMD=sleep 0.50
 
-IMPL_NAME=OMP
-XLABEL=SleepA
-CMD=sleep 1
+IMPL_NAME=Serial
+XLABEL=Dgeqrf
+CMD=sleep 0.60
 
-IMPL_NAME=OMP
-XLABEL=SleepB
-CMD=sleep 2
+IMPL_NAME=MTSP
+XLABEL=Strassen
+CMD=sleep 0.70
 
-IMPL_NAME=SER
-XLABEL=SleepA
-CMD=sleep 4
+IMPL_NAME=MTSP
+XLABEL=Jacobi
+CMD=sleep 0.80
 
-IMPL_NAME=SER
-XLABEL=SleepB
-CMD=sleep 3
+IMPL_NAME=MTSP
+XLABEL=SparseLU
+CMD=sleep 0.90
+
+IMPL_NAME=MTSP
+XLABEL=Dpotrf
+CMD=sleep 1.00
+
+IMPL_NAME=MTSP
+XLABEL=Dgetrf
+CMD=sleep 1.10
+
+IMPL_NAME=MTSP
+XLABEL=Dgeqrf
+CMD=sleep 1.20
