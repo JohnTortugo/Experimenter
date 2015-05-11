@@ -459,8 +459,8 @@ public:
 		string markers[NUM_DESIGNS] = {	"o", "star", "oplus", "otimes", "square", "triangle", "diamond", "halfdiamond", "halfcircle", "pentagon",
 										"*", "star*", "oplus*", "otimes*", "square*", "triangle*", "diamond*", "pentagon*"};
 
-		string colors[NUM_DESIGNS] = {	"red", "blue", "yellow", "green", "violet", "orange", "pink", "cyan", "olive", "magenta",
-										"gray", "brown", "purple", "lightgray", "teal", "lime", "black", "darkgray"};
+		string colors[NUM_DESIGNS] = {	"red", "blue", "yellow", "magenta", "green", "violet", "brown", "orange", "pink", "cyan", "olive",
+										"gray", "purple", "lightgray", "teal", "lime", "black", "darkgray"};
 
 		string plotText = texTemplate;
 
@@ -663,6 +663,7 @@ public:
 		string linePlot_TemplateTex 		= readFile("templates/template1/lineplot_template.tex");
 		string barPlot_TemplateTex 			= readFile("templates/template1/barplot_template.tex");
 		string reportText					= mainFile_TemplateText;
+		string introText 					= "No introduction.";
 
 		/// Produce the architecture representation image
 		int rsys = system("lstopo reports/architecture.pdf");
@@ -674,10 +675,9 @@ public:
 		ReplaceAll(reportText, EXPERIMENTER_EMAIL_KEY, this->experimenter_email());
 
 		/// If the user specified an "intro.tex" file then it is included
-		if (this->intro_tex_path() != "") {
-			string introText = readFile(this->intro_tex_path());
-			ReplaceAll(reportText, INTRODUCTION_KEY, introText);
-		}
+		if (this->intro_tex_path() != "")
+			introText = readFile(this->intro_tex_path());
+		ReplaceAll(reportText, INTRODUCTION_KEY, introText);
 
 		/// Append architecture name, frequency, code; append kernel version, machine name, etc.
 		ReplaceAll(reportText, OS_UNAME_KEY, commandOutput("uname -a"));
@@ -715,7 +715,7 @@ public:
 
 info nextInputPair() {
 	const int maxSize = 1000;
-	char line[maxSize], key[maxSize], value[maxSize];
+	char line[maxSize] = {0}, key[maxSize] = {0}, value[maxSize] = {0};
 
 	/// Read the next line which is not a blank line
 	while (fgets(line, maxSize, stdin) != NULL) {
