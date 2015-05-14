@@ -250,6 +250,10 @@ private:
 	map<string, int> implementations;
 	map<string, int> xlabels;
 
+	// To store the inverse mapping, i.e., (int (pos) -> string (name))
+	vector<string> invertedImplementations;
+	vector<string> invertedXlabels;
+
 	const string EXP_ID_KEY				{ "@@@EXP-ID@@@" };
 	const string PLOT_TITLE_KEY			{ "@@@PLOT-TITLE@@@" };
 	const string PLOT_XLABEL_KEY		{ "@@@PLOT-XLABEL@@@" };
@@ -354,10 +358,12 @@ public:
 		for (auto& c: cmds_) {
 			if (implementations.find(c.impl()) == implementations.end()) {
 				implementations[c.impl()] = numImpls++;
+				invertedImplementations.push_back(c.impl());
 			}
 
 			if (xlabels.find(c.xlabel()) == xlabels.end()) {
-				xlabels[c.xlabel()] = numXlbls++;
+				xlabels[c.xlabel()] 		= numXlbls++;
+				invertedXlabels.push_back(c.xlabel());
 			}
 		}
 
@@ -379,7 +385,7 @@ public:
 				double endTime 		= get_wall_time();
 				double wallTime 	= endTime - startTime;
 
-				if (retCode == -1) {
+				if (retCode != 0) {
 					fprintf(stderr, "[%s:%d] Some error occurred while executing command: %s\n", __FUNCTION__, __LINE__, cmd.cmd().c_str());
 					exit(1);
 				}
@@ -401,17 +407,17 @@ public:
 
 		printf("%13s ", " ");
 
-		for (auto& lbl : xlabels) {
-			printf("%13s ", lbl.first.c_str());
+		for (auto& lbl : invertedXlabels) {
+			printf("%13s ", lbl.c_str());
 		}
 
 		printf("\n");
 
-		for (auto& impl : implementations) {
-			printf("%13s ", impl.first.c_str());
+		for (auto& impl : invertedImplementations) {
+			printf("%13s ", impl.c_str());
 
-			for (auto& lbl : xlabels) {
-				printf("%13.5lf ", this->results_.getAverage(impl.first, lbl.first));
+			for (auto& lbl : invertedXlabels) {
+				printf("%13.5lf ", this->results_.getAverage(impl, lbl));
 			}
 
 			printf("\n");
@@ -424,16 +430,20 @@ public:
 
 		results << "x \t";
 
-		for (auto& impl : implementations)
-			results << "c" << std::to_string(impl.second) << " \t c" << std::to_string(impl.second) << "_err \t";
+		for (int i=0; i<invertedImplementations.size(); i++)
+			results << "c" << std::to_string(i) << " \t c" << std::to_string(i) << "_err \t";
 		results << endl;
 
-		for (auto& lbl : xlabels) {
-			results << lbl.first << " \t";
+		for (int lblIdx=0; lblIdx<invertedXlabels.size(); lblIdx++) {
+			auto lblStr = invertedXlabels[lblIdx];
+			results << lblStr << " \t";
 
-			for (auto& impl : implementations)
-				results << this->results_.getAverage(impl.first, lbl.first) << " \t " <<
-						   this->results_.getSampleStandardDeviation(impl.first, lbl.first) << " \t";
+			for (int implIdx=0; implIdx<invertedImplementations.size(); implIdx++) {
+				auto implStr = invertedImplementations[implIdx];
+
+				results << this->results_.getAverage(implStr, lblStr) << " \t " <<
+						   this->results_.getSampleStandardDeviation(implStr, lblStr) << " \t";
+			}
 
 			results << endl;
 		}
