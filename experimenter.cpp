@@ -615,13 +615,15 @@ public:
 
 		for (auto& exp : exps_) {
 			exp.initResults();
-
 			exp.execute();
+			printResultsToStdout(true);
 		}
 	}
 
-	void printResultsToStdout() {
-		cout << endl << endl << "Results of the project \"" << title_ << "\"" << endl;
+	void printResultsToStdout(bool partial=false) {
+		cout << endl << endl;
+		if (partial) cout << "Partial ";
+		cout << "Results of the project \"" << title_ << "\"" << endl;
 
 		for (auto& exp : exps_) {
 			exp.printResultsToStdout();
