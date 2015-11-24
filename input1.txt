@@ -3,7 +3,7 @@ ABSTRACT=
 EXPERIMENTER=Divino César
 EXPERIMENTER_EMAIL=divcesar@ic.unicamp.br
 
-INTRODUCTION=/home/divcesar/Dropbox/MTSP/exps/intro.tex
+INTRODUCTION=
 
 NUM_EXPS=1
 
@@ -20,48 +20,48 @@ NUM_CMDS=12
 
 IMPL_NAME=Serial
 XLABEL=Strassen
-CMD=sleep 0.10 
+CMD=echo "success|0.10"
 
 IMPL_NAME=Serial
 XLABEL=Jacobi
-CMD=sleep 0.20
+CMD=echo "success|0.20"
 
 IMPL_NAME=Serial
 XLABEL=SparseLU
-CMD=sleep 0.30
+CMD=echo "success|0.30"
 
 IMPL_NAME=Serial
 XLABEL=Dpotrf
-CMD=sleep 0.40
+CMD=echo "success|0.40"
 
 IMPL_NAME=Serial
 XLABEL=Dgetrf
-CMD=sleep 0.50
+CMD=echo "success|0.50"
 
 IMPL_NAME=Serial
 XLABEL=Dgeqrf
-CMD=sleep 0.60
+CMD=echo "success|0.60"
 
 IMPL_NAME=MTSP
 XLABEL=Strassen
-CMD=sleep 0.70
+CMD=echo "success|0.70"
 
 IMPL_NAME=MTSP
 XLABEL=Jacobi
-CMD=sleep 0.80
+CMD=echo "success|0.80"
 
 IMPL_NAME=MTSP
 XLABEL=SparseLU
-CMD=sleep 0.90
+CMD=echo "success|0.90"
 
 IMPL_NAME=MTSP
 XLABEL=Dpotrf
-CMD=sleep 1.00
+CMD=echo "success|1.00"
 
 IMPL_NAME=MTSP
 XLABEL=Dgetrf
-CMD=sleep 1.10
+CMD=echo "success|1.10"
 
 IMPL_NAME=MTSP
 XLABEL=Dgeqrf
-CMD=sleep 1.20
+CMD=echo "success|1.20"

@@ -41,8 +41,8 @@ double exec(const char* cmd) {
 	std::vector<std::string> strs;
 	boost::split(strs, result, boost::is_any_of("|"));
 
-	if (strs.size() < 2) return -1;
-	else if (strs[0] != "0") return -1;
+	if (strs.size() < 2) return -10;
+	else if (strs[0] != "success") return -100;
 
 	return stod(strs[1]);
 }
@@ -410,10 +410,12 @@ public:
 
 				if (walltime < 0) {
 					fprintf(stderr, "[%s:%d] Some error occurred while executing command: %s\n", __FUNCTION__, __LINE__, cmd.cmd().c_str());
+					fprintf(stderr, "[%s:%d] Watch out for spaces or mispelled words in the result.\n", __FUNCTION__, __LINE__);
 					exit(1);
 				}
-
-				cout << " took " << walltime << " seconds. " << endl;
+				else {
+					cout << " took " << walltime << " seconds. " << endl;
+				}
 
 				addResult(cmd.impl(), cmd.xlabel(), walltime);
 			}
