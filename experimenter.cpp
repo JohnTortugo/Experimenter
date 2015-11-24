@@ -13,6 +13,7 @@
 #include <sstream>
 #include <ctime>
 #include <locale>
+#include <boost/algorithm/string.hpp>
 using namespace std;
 
 /// Just to shorten things
@@ -23,6 +24,28 @@ typedef pair<string, string> info;
 									fprintf(stderr, "[%s:%d] It was impossible to parse the configuration file.\n", __FUNCTION__, __LINE__); \
 									exit(1); \
 								}
+
+
+double exec(const char* cmd) {
+	FILE* pipe = popen(cmd, "r");
+	if (!pipe) return -1;
+	char buffer[512];
+	std::string result = "";
+
+	while (!feof(pipe)) {
+		if (fgets(buffer, 512, pipe) != nullptr)
+			result += buffer;
+	}
+	pclose(pipe);
+
+	std::vector<std::string> strs;
+	boost::split(strs, result, boost::is_any_of("|"));
+
+	if (strs.size() < 2) return -1;
+	else if (strs[0] != "0") return -1;
+
+	return stod(strs[1]);
+}
 
 
 /// Return the current time in "seconds.microseconds";
@@ -378,26 +401,21 @@ public:
 
 			for (int sampleNum=0; sampleNum<num_samples_; sampleNum++) {
 				cout << "\t\t\t\tExecuting sample " << sampleNum << ": ";
-				double startTime 	= get_wall_time();
+//				double startTime 	= get_wall_time();
+//				int retCode 		= system( cmd.cmd().c_str() );
+//				double endTime 		= get_wall_time();
+//				double wallTime 	= endTime - startTime;
 
-				int retCode 		= system( cmd.cmd().c_str() );
+				double walltime	= exec( cmd.cmd().c_str() ); 		
 
-				double endTime 		= get_wall_time();
-				double wallTime 	= endTime - startTime;
-
-				if (retCode != 0) {
+				if (walltime < 0) {
 					fprintf(stderr, "[%s:%d] Some error occurred while executing command: %s\n", __FUNCTION__, __LINE__, cmd.cmd().c_str());
 					exit(1);
 				}
 
-				if ( WIFSIGNALED(retCode) && (WTERMSIG(retCode) == SIGINT || WTERMSIG(retCode) == SIGQUIT) ) {
-					fprintf(stderr, "[%s:%d] Signal for stopping captured. Aborting!\n", __FUNCTION__, __LINE__); \
-					exit(1);
-				}
+				cout << " took " << walltime << " seconds. " << endl;
 
-				cout << " took " << wallTime << " seconds. " << endl;
-
-				addResult(cmd.impl(), cmd.xlabel(), wallTime);
+				addResult(cmd.impl(), cmd.xlabel(), walltime);
 			}
 		}
 	}
@@ -676,7 +694,7 @@ public:
 		string introText 					= "No introduction.";
 
 		/// Produce the architecture representation image
-		int rsys = system("lstopo reports/architecture.pdf");
+		///int rsys = system("lstopo reports/architecture.pdf");
 
 		/// Update information in the main template
 		ReplaceAll(reportText, TITLE_KEY, this->title());
